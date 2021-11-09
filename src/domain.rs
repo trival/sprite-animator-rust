@@ -43,6 +43,7 @@ struct Cell<'a> {
     x: u16,
     y: u16,
     frame: &'a Frame,
+    val: u8,
 }
 
 impl Frame {
@@ -60,34 +61,48 @@ impl Frame {
     fn get(&self, x: i32, y: i32) -> u8 {
         let (x, y) = adjust_coords(x, y, self.width, self.height);
 
-        self.cells[(y * self.height as i32 + x) as usize]
+        self.cells[index(y, x, self.height)]
     }
 
     fn set(&mut self, x: i32, y: i32, val: u8) {
         let (x, y) = adjust_coords(x, y, self.width, self.height);
 
-        self.cells[(y * self.height as i32 + x) as usize] = val
+        self.cells[index(y, x, self.height)] = val
+    }
+
+    fn cell(&self, x: i32, y: i32) -> Cell {
+        let (x, y) = adjust_coords(x, y, self.width, self.height);
+
+        Cell {
+            x: x,
+            y: y,
+            frame: self,
+            val: self.cells[index(y, x, self.height)],
+        }
     }
 }
 
-fn adjust_coords(x: i32, y: i32, width: u16, height: u16) -> (i32, i32) {
+fn index(y: u16, x: u16, height: u16) -> usize {
+    (y * height + x) as usize
+}
+
+fn adjust_coords(x: i32, y: i32, width: u16, height: u16) -> (u16, u16) {
+    let w = width as i32;
+    let h = height as i32;
     if x < 0 {
-        return adjust_coords(x + width as i32, y, width, height);
+        return adjust_coords(x + w, y, width, height);
     }
-
     if y < 0 {
-        return adjust_coords(x, y + height as i32, width, height);
+        return adjust_coords(x, y + h, width, height);
+    }
+    if x >= w {
+        return adjust_coords(x - w, y, width, height);
+    }
+    if y >= h {
+        return adjust_coords(x, y - h, width, height);
     }
 
-    if x >= width as i32 {
-        return adjust_coords(x - width as i32, y, width, height);
-    }
-
-    if y >= height as i32 {
-        return adjust_coords(x, y - height as i32, width, height);
-    }
-
-    (x, y)
+    (x as u16, y as u16)
 }
 
 #[cfg(test)]
