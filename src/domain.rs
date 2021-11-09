@@ -1,4 +1,4 @@
-mod Colors {
+mod colors {
 
     pub struct Color {
         r: f32,
@@ -22,13 +22,13 @@ mod Colors {
 }
 
 struct Pallete {
-    colors: [Colors::Color; 3],
+    colors: [colors::Color; 3],
 }
 
 impl Default for Pallete {
     fn default() -> Self {
         Pallete {
-            colors: [Colors::LIGHT, Colors::MEDIUM, Colors::DARK],
+            colors: [colors::LIGHT, colors::MEDIUM, colors::DARK],
         }
     }
 }
@@ -57,23 +57,39 @@ impl Frame {
         frame
     }
 
-    fn val(&self, x: i32, y: i32) -> u8 {
-        if x < 0 {
-            return self.val(x + self.width as i32, y);
-        }
-
-        if y < 0 {
-            return self.val(x, y + self.height as i32);
-        }
-
-        if x >= self.width as i32 {
-            return self.val(x - self.width as i32, y);
-        }
-
-        if y >= self.height as i32 {
-            return self.val(x, y - self.height as i32);
-        }
+    fn get(&self, x: i32, y: i32) -> u8 {
+        let (x, y) = adjust_coords(x, y, self.width, self.height);
 
         self.cells[(y * self.height as i32 + x) as usize]
     }
+
+    fn set(&mut self, x: i32, y: i32, val: u8) {
+        let (x, y) = adjust_coords(x, y, self.width, self.height);
+
+        self.cells[(y * self.height as i32 + x) as usize] = val
+    }
 }
+
+fn adjust_coords(x: i32, y: i32, width: u16, height: u16) -> (i32, i32) {
+    if x < 0 {
+        return adjust_coords(x + width as i32, y, width, height);
+    }
+
+    if y < 0 {
+        return adjust_coords(x, y + height as i32, width, height);
+    }
+
+    if x >= width as i32 {
+        return adjust_coords(x - width as i32, y, width, height);
+    }
+
+    if y >= height as i32 {
+        return adjust_coords(x, y - height as i32, width, height);
+    }
+
+    (x, y)
+}
+
+#[cfg(test)]
+#[path = "./domain_tests.rs"]
+mod domain_tests;
