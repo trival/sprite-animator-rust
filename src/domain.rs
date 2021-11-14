@@ -1,3 +1,5 @@
+use std::fmt::Pointer;
+
 mod colors {
 
     pub struct Color {
@@ -50,9 +52,9 @@ impl Frame {
     fn new(width: u16, height: u16) -> Self {
         let cells = vec![0u8; (width * height).into()];
         let frame = Frame {
-            width: width,
-            height: height,
-            cells: cells,
+            width,
+            height,
+            cells,
         };
 
         frame
@@ -74,11 +76,26 @@ impl Frame {
         let (x, y) = adjust_coords(x, y, self.width, self.height);
 
         Cell {
-            x: x,
-            y: y,
+            x,
+            y,
             frame: self,
             val: self.cells[index(y, x, self.height)],
         }
+    }
+}
+
+impl Cell<'_> {
+    fn left(&self) -> Self {
+        self.frame.cell(self.x as i32 - 1, self.y as i32)
+    }
+    fn right(&self) -> Self {
+        self.frame.cell(self.x as i32 + 1, self.y as i32)
+    }
+    fn top(&self) -> Self {
+        self.frame.cell(self.x as i32, self.y as i32 - 1)
+    }
+    fn bottom(&self) -> Self {
+        self.frame.cell(self.x as i32, self.y as i32 + 1)
     }
 }
 
