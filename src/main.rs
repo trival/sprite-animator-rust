@@ -39,16 +39,16 @@ fn main() -> BError {
 }
 
 fn create_frame(w: i32, h: i32) -> Frame {
-    let mut f = Frame::new(w as u16, h as u16);
+    let mut frame = Frame::new(w as u16, h as u16);
     for x in 0..w {
         for y in 0..h {
             if (x + y) % 3 == 0 {
-                f.set(x, y, Color::Light)
+                frame.set(x, y, Color::Light)
             }
             if (x + y + 1) % 3 == 0 {
-                f.set(x, y, Color::Medium)
+                frame.set(x, y, Color::Medium)
             }
         }
     }
-    f
+    frame
 }
