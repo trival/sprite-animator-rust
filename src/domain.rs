@@ -1,56 +1,26 @@
-use std::fmt::Pointer;
-
-mod colors {
-
-    pub struct Color {
-        r: f32,
-        g: f32,
-        b: f32,
-    }
-
-    impl Color {
-        const fn gray(val: f32) -> Color {
-            Color {
-                r: val,
-                g: val,
-                b: val,
-            }
-        }
-    }
-
-    pub const LIGHT: Color = Color::gray(0.25);
-    pub const MEDIUM: Color = Color::gray(0.5);
-    pub const DARK: Color = Color::gray(0.75);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Color {
+    Light,
+    Medium,
+    Dark,
 }
 
-struct Pallete {
-    colors: [colors::Color; 3],
+pub struct Frame {
+    pub width: u16,
+    pub height: u16,
+    cells: Vec<Color>,
 }
 
-impl Default for Pallete {
-    fn default() -> Self {
-        Pallete {
-            colors: [colors::LIGHT, colors::MEDIUM, colors::DARK],
-        }
-    }
-}
-
-struct Frame {
-    width: u16,
-    height: u16,
-    cells: Vec<u8>,
-}
-
-struct Cell<'a> {
-    x: u16,
-    y: u16,
+pub struct Cell<'a> {
+    pub x: u16,
+    pub y: u16,
+    pub val: Color,
     frame: &'a Frame,
-    val: u8,
 }
 
 impl Frame {
-    fn new(width: u16, height: u16) -> Self {
-        let cells = vec![0u8; (width * height).into()];
+    pub fn new(width: u16, height: u16) -> Self {
+        let cells = vec![Color::Dark; (width * height).into()];
         let frame = Frame {
             width,
             height,
@@ -60,19 +30,19 @@ impl Frame {
         frame
     }
 
-    fn get(&self, x: i32, y: i32) -> u8 {
+    pub fn get(&self, x: i32, y: i32) -> Color {
         let (x, y) = adjust_coords(x, y, self.width, self.height);
 
         self.cells[index(y, x, self.height)]
     }
 
-    fn set(&mut self, x: i32, y: i32, val: u8) {
+    pub fn set(&mut self, x: i32, y: i32, val: Color) {
         let (x, y) = adjust_coords(x, y, self.width, self.height);
 
         self.cells[index(y, x, self.height)] = val
     }
 
-    fn cell(&self, x: i32, y: i32) -> Cell {
+    pub fn cell(&self, x: i32, y: i32) -> Cell {
         let (x, y) = adjust_coords(x, y, self.width, self.height);
 
         Cell {
@@ -82,19 +52,32 @@ impl Frame {
             val: self.cells[index(y, x, self.height)],
         }
     }
+
+    pub fn evolve<F>(&self, f: F) -> Self
+    where
+        F: Fn(Cell) -> Color,
+    {
+        let mut frame = Frame::new(self.width, self.height);
+        for x in 0..self.width as i32 {
+            for y in 0..self.height as i32 {
+                frame.set(x, y, f(self.cell(x, y)));
+            }
+        }
+        frame
+    }
 }
 
 impl Cell<'_> {
-    fn left(&self) -> Self {
+    pub fn left(&self) -> Self {
         self.frame.cell(self.x as i32 - 1, self.y as i32)
     }
-    fn right(&self) -> Self {
+    pub fn right(&self) -> Self {
         self.frame.cell(self.x as i32 + 1, self.y as i32)
     }
-    fn top(&self) -> Self {
+    pub fn top(&self) -> Self {
         self.frame.cell(self.x as i32, self.y as i32 - 1)
     }
-    fn bottom(&self) -> Self {
+    pub fn bottom(&self) -> Self {
         self.frame.cell(self.x as i32, self.y as i32 + 1)
     }
 }
